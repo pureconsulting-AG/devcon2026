@@ -58,7 +58,7 @@ lcc doctor
 ```
 
 ```
-✓ Server: http://192.168.178.79:11434 erreichbar, 14 Modelle
+✓ Server: http://127.0.0.1:11434 erreichbar, 14 Modelle
 ✓ Modell qwen3.5:9b (code, chat): 9.7B
 ✓ Modell bge-m3 (embed): 566.70M
 ✓ Tool-Calling (qwen3.5:9b): native tool_calls funktionieren
@@ -132,7 +132,7 @@ innerhalb des Projekts (Git-Root bzw. aktueller Ordner), und mit Git siehst du j
 
 ```text
 $ lcc
-lcc – Modell qwen3.5:9b auf http://192.168.178.79:11434. /help zeigt die Befehle, Esc+Enter für neue Zeile.
+lcc – Modell qwen3.5:9b auf http://127.0.0.1:11434. /help zeigt die Befehle, Esc+Enter für neue Zeile.
 › Was macht die Funktion preis in tarife.py?
 ⠹ denkt nach … 4s
 → read_file(path='tarife.py')
@@ -176,7 +176,7 @@ lcc liest die Config in dieser Reihenfolge – spätere überschreiben frühere,
 
 ```toml
 [ollama]
-base_url = "http://192.168.178.79:11434"  # Default
+base_url = "http://127.0.0.1:11434"  # Default
 [models]
 code = "qwen3.5:9b"  # /home/dev/.config/lcc/config.toml
 ```
@@ -185,7 +185,7 @@ Alle Keys mit Kommentaren stehen in [`config.example.toml`](config.example.toml)
 
 | Key | Default | Bedeutung |
 |---|---|---|
-| `ollama.base_url` | `http://192.168.178.79:11434` | der einzige Server, den lcc kontaktiert |
+| `ollama.base_url` | `http://127.0.0.1:11434` | der einzige Server, den lcc kontaktiert |
 | `models.code` / `models.chat` / `models.embed` | `qwen3.5:9b` / `qwen3.5:9b` / `bge-m3` | Modelle je Rolle |
 | `models.options.num_ctx` | `16384` | Kontextgröße; ab ~80 % kürzt lcc alte Tool-Ergebnisse |
 | `models.thinking.enabled` | `false` | Thinking an/aus (Anzeige nur mit `--show-thinking`) |
