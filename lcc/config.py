@@ -20,7 +20,7 @@ from lcc import texts
 # Eingebaute Defaults. Muss mit config.example.toml übereinstimmen (siehe Tests).
 DEFAULTS: dict[str, Any] = {
     "ollama": {
-        "base_url": "http://192.168.178.79:11434",
+        "base_url": "http://127.0.0.1:11434",
         "timeout_seconds": 300,
         "connect_timeout_seconds": 5,
         "keep_alive": "10m",
