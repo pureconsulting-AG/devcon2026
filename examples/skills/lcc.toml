@@ -1,0 +1,6 @@
+# Config, um die Beispiel-Skills direkt im lcc-Repo zu nutzen:
+#   lcc --config examples/skills/lcc.toml skills check
+# Pfade gelten relativ zu dieser Datei.
+
+[skills]
+paths = ["."]

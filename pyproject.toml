@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lcc"
+description = "local code cli – Coding-CLI für lokale Modelle über Ollama"
+readme = "README.md"
+requires-python = ">=3.12"
+dynamic = ["version"]
+dependencies = [
+  "httpx>=0.27",
+  "typer>=0.12",
+  "prompt_toolkit>=3.0",
+  "rich>=13",
+  "numpy>=1.26",
+  "tomli-w>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "mypy>=1.10", "ruff>=0.5"]
+
+[project.scripts]
+lcc = "lcc.cli:main"
+
+[tool.hatch.version]
+path = "lcc/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["lcc"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"config.example.toml" = "lcc/config.example.toml"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+# Deutsche Nutzertexte nutzen bewusst Gedankenstriche (–).
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+# Skill-Vorlagen: description muss laut Spezifikation einzeilig bleiben.
+"lcc/skills/scaffold.py" = ["E501"]
+# Folieninhalte und HTML/CSS-Vorlage
+"slides/build_slides.py" = ["E501"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+packages = ["lcc", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: braucht den echten Ollama-Server (nur mit LCC_IT=1)"]

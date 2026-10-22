@@ -1,0 +1,17 @@
+# Vorlage für /etc/kranich/kranich.toml
+
+[database]
+url = "postgresql://kranich@db01.nordlicht.internal/kranich_prod"
+pool_size = 20          # bei mehr als 3 Verarbeitern auf 40 erhöhen
+
+[queue]
+redis_url = "redis://cache01.nordlicht.internal:6379/2"
+max_retries = 5         # danach landet ein Scan in kranich:fehler
+
+[warnings]
+liegezeit_stunden = 48
+unbekannt_nach_tagen = 7
+
+[sap]
+intervall_minuten = 60
+mandant = "300"

@@ -1,0 +1,17 @@
+Häufige Fragen zu Kranich
+=========================
+
+Frage: Wie lange speichert Kranich Sendungsdaten?
+Antwort: Sendungsdaten bleiben 18 Monate gespeichert, danach werden sie anonymisiert.
+
+Frage: Warum zeigt eine Sendung den Status "unbekannt"?
+Antwort: Es gab seit mehr als 7 Tagen keinen Scan. Bitte den Hub anrufen, in dem der letzte Scan war.
+
+Frage: Kann ich die Web-Oberfläche auf Englisch umstellen?
+Antwort: Ja, über das Profilmenü oben rechts unter "Sprache". Unterstützt sind Deutsch, Englisch und Polnisch.
+
+Frage: Wer bekommt Zugang zur API?
+Antwort: Nur Geschäftskunden mit Rahmenvertrag. Den API-Schlüssel vergibt der Vertrieb (vertrieb@nordlicht.example).
+
+Frage: Was kostet eine Expresszustellung?
+Antwort: Siehe Tarifberechnung in code/tarife.py – der Expresszuschlag beträgt 9,90 Euro.

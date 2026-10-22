@@ -1,0 +1,79 @@
+# lcc – Beispiel-Konfiguration
+# Speicherort: ~/.config/lcc/config.toml (Benutzer) oder ./.lcc/config.toml (Projekt).
+# Relative Pfade gelten relativ zu der Datei, in der sie stehen.
+
+[ollama]
+base_url = "http://127.0.0.1:11434"
+timeout_seconds = 300          # Lesezeit für Generierung
+connect_timeout_seconds = 5
+keep_alive = "10m"             # wird an Ollama durchgereicht
+
+[models]
+# Alle Modelle laufen auf dem Server unter [ollama].base_url.
+code  = "qwen3.5:9b"           # Agent / Code-Aufgaben
+chat  = "qwen3.5:9b"           # einfache Fragen (lcc ask); darf gleich 'code' sein
+embed = "bge-m3"               # RAG-Embeddings (mehrsprachig, gut für Deutsch)
+rerank = ""                    # optional, leer = kein Reranking
+
+[models.options]               # wird als 'options' an /api/chat übergeben
+num_ctx = 16384
+temperature = 0.2
+
+[models.thinking]
+enabled = false                # 'think' an Ollama; Thinking-Ausgabe nur mit --show-thinking
+
+[agent]
+max_steps = 25                 # maximale Tool-Runden pro Auftrag
+confirm_writes = true          # Dateiänderungen bestätigen (Diff zeigen)
+confirm_shell = true           # Shell-Befehle bestätigen
+shell_allowlist = ["ls", "cat", "rg", "grep", "git status", "git diff", "pytest", "python -m pytest", "python -m py_compile"]
+shell_timeout_seconds = 120
+max_tool_output_chars = 12000  # längere Ausgaben werden gekürzt (Anfang + Ende)
+prompt_language = "de"         # "de" | "en" – Sprache des Systemprompts
+
+[workspace]
+root = "."                     # Agent darf nur innerhalb dieses Ordners lesen/schreiben
+ignore = [".git", ".venv", "node_modules", "__pycache__", ".lcc/index.db"]
+
+[rag]
+enabled = true
+sources = ["./docs", "~/rag-docs"]     # Ordner/Dateien für den Index
+include = ["*.md", "*.txt", "*.py", "*.abap", "*.toml"]
+index_path = ".lcc/index.db"
+chunk_size_chars = 1500
+chunk_overlap_chars = 200
+top_k = 5
+min_score = 0.35
+
+[skills]
+enabled = true
+paths = ["./.lcc/skills", "~/.config/lcc/skills"]
+preselect = "triggers+embed"   # "off" | "triggers" | "triggers+embed"
+max_listed = 8                 # max. Skills im Systemprompt (Name + Beschreibung)
+max_auto_load = 1              # max. Skills, die lcc vorab automatisch lädt
+auto_load_min_score = 0.55     # Mindest-Score für automatisches Laden
+max_body_chars = 6000          # größere Bodies → Warnung bei 'lcc skills check'
+
+[small_model]
+mode = "auto"                  # "auto" | "on" | "off"
+auto_max_params_b = 14         # auto: Modelle ≤ 14 Mrd. Parameter gelten als klein
+plan_first = true              # erst strukturierter Plan, dann Schritte einzeln
+think_on_plan = true           # Thinking nur im Planungsschritt, nicht bei Tool-Schritten
+max_tools_per_step = 5         # nur die für die Phase nötigen Tools anbieten
+max_steps_per_plan_step = 8    # Tool-Runden je Planschritt (agent.max_steps bleibt Gesamtlimit)
+max_repair_attempts = 2        # Fehler aus Checks/Tests zurückspielen
+fuzzy_edit = true              # edit_file toleriert Whitespace-Abweichungen
+auto_context = true            # erwähnte Dateien, Repo-Map, RAG-Treffer vorab einspielen
+repo_map_max_chars = 3000
+verify_commands = []           # leer = automatisch erkennen (z. B. pytest, py_compile)
+temperature = 0.1              # überschreibt models.options.temperature im Kleinmodell-Modus
+escalate_model = ""            # optional größeres Modell auf demselben Server, z. B. "qwen3.5:27b"
+
+[session]
+history_path = "~/.local/state/lcc/history"
+save_sessions = true
+sessions_dir = "~/.local/state/lcc/sessions"
+
+[ui]
+markdown = true
+show_tool_calls = true         # Tool-Aufrufe kompakt anzeigen

@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lcc – Tutorial</title>
+<!-- Erzeugt von slides/build_slides.py – bitte dort ändern. -->
+<style>
+  :root {
+    --bg: #0f1419; --panel: #161d26; --panel-2: #1c2531; --text: #e6e9ee; --muted: #9aa5b4;
+    --accent: #5cc8ff; --accent-2: #7ee0a1; --warn: #ffcf6b; --err: #ff7b72; --border: #2a3542;
+    --mono: "JetBrains Mono", "Fira Code", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", "Segoe UI", "DejaVu Sans", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #070a0d; color: var(--text); font-family: var(--sans); }
+  #viewport { position: fixed; inset: 0 0 64px 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  #stage { width: 1280px; height: 720px; position: relative; transform-origin: center center; }
+  section.slide { position: absolute; inset: 0; padding: 48px 64px 60px; background: var(--bg); border-radius: 14px;
+    display: none; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  section.slide.active { display: flex; }
+  .kicker { color: var(--accent); font-size: 17px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600;
+    margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .kicker .step { font-family: var(--mono); letter-spacing: 0; text-transform: none; color: var(--muted);
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 999px; padding: 3px 12px; font-size: 15px; }
+  h1 { font-size: 64px; margin: 0 0 16px; line-height: 1.05; }
+  h2 { font-size: 38px; margin: 0 0 10px; line-height: 1.15; }
+  h3 { font-size: 21px; margin: 0 0 10px; color: var(--accent-2); }
+  p, li { font-size: 22px; line-height: 1.45; }
+  p { margin: 0 0 12px; }
+  ul, ol { margin: 0 0 12px; padding-left: 28px; }
+  li { margin-bottom: 6px; }
+  .muted { color: var(--muted); }
+  .small { font-size: 18px; }
+  code { font-family: var(--mono); font-size: .88em; background: var(--panel-2); padding: 1px 6px; border-radius: 5px; color: #cfe8ff; }
+  .goal { font-size: 21px; color: var(--muted); margin-bottom: 16px; }
+  .goal b { color: var(--text); }
+  .case { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex: 1; min-height: 0; }
+  .pane { display: flex; flex-direction: column; min-height: 0; }
+  .label { font-size: 14px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+  pre { font-family: var(--mono); font-size: 16px; line-height: 1.45; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 18px; margin: 0; white-space: pre-wrap; color: #d6dde6; flex: 1; overflow: hidden; }
+  .cmd { color: var(--accent); } .cmd::before { content: "$ "; color: var(--muted); }
+  .cmd-plain { color: var(--accent); } .repl { color: var(--muted); }
+  .cm { color: #6b7a8c; } .ok { color: var(--accent-2); } .bad { color: var(--err); }
+  .warn { color: var(--warn); } .info { color: var(--accent); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .card p { font-size: 19px; }
+  table { border-collapse: collapse; width: 100%; font-size: 19px; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 15px; text-transform: uppercase; letter-spacing: .06em; }
+  .tip { margin-top: 16px; background: rgba(92,200,255,.08); border-left: 4px solid var(--accent); padding: 12px 18px;
+    border-radius: 6px; font-size: 19px; line-height: 1.4; }
+  .tip b { color: var(--accent); }
+  .title-slide, .intro-slide { justify-content: center; background: radial-gradient(circle at 80% 20%, #1b3346 0%, var(--bg) 55%); }
+  .title-slide h1 { font-size: 88px; }
+  .badge { display: inline-block; font-family: var(--mono); font-size: 16px; padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--muted); margin-right: 8px; }
+  .lesson-no { position: absolute; right: 64px; top: 40px; font-family: var(--mono); color: #22303e; font-size: 200px; font-weight: 700; line-height: 1; }
+  ol.learn { list-style: none; padding: 0; counter-reset: learn; }
+  ol.learn li { counter-increment: learn; padding-left: 44px; position: relative; font-size: 24px; }
+  ol.learn li::before { content: counter(learn); position: absolute; left: 0; top: 2px; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--accent); font: 600 16px/30px var(--mono); text-align: center; }
+  ol.agenda { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 32px; margin-top: 12px; }
+  ol.agenda li { display: grid; grid-template-columns: 52px 1fr auto; align-items: center; background: var(--panel);
+    border: 1px solid var(--border); border-radius: 10px; padding: 10px 16px; font-size: 22px; margin: 0; }
+  ol.agenda .no { font-family: var(--mono); color: var(--accent); font-weight: 700; font-size: 24px; }
+  ol.agenda .count { color: var(--muted); font-size: 15px; font-family: var(--mono); }
+  footer.bar { position: absolute; left: 64px; right: 64px; bottom: 20px; display: flex; justify-content: space-between;
+    color: #4f5d6d; font-size: 14px; font-family: var(--mono); }
+  #progress { position: fixed; left: 0; bottom: 0; height: 4px; background: var(--accent); transition: width .2s; }
+  #help { position: fixed; right: 14px; bottom: 12px; color: #3f4b58; font: 12px var(--mono); }
+  #nav { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px;
+    background: rgba(22,29,38,.92); border: 1px solid var(--border); border-radius: 999px; padding: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.45); backdrop-filter: blur(6px); z-index: 10; user-select: none; }
+  #nav button { font: 600 15px var(--sans); color: var(--text); background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 999px; padding: 8px 18px; cursor: pointer; display: flex; align-items: center; gap: 8px;
+    transition: background .15s, border-color .15s, color .15s, transform .1s; }
+  #nav button:hover:not(:disabled) { background: #22303e; border-color: var(--accent); color: var(--accent); }
+  #nav button:active:not(:disabled) { transform: scale(.96); }
+  #nav button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  #nav button:disabled { opacity: .35; cursor: default; }
+  #nav button.next { background: var(--accent); color: #062033; border-color: var(--accent); }
+  #nav button.next:hover:not(:disabled) { background: #7fd6ff; color: #062033; }
+  #nav .arrow { font-size: 18px; line-height: 1; }
+  #nav .pos { font: 14px var(--mono); color: var(--muted); min-width: 64px; text-align: center; }
+  @media print {
+    html, body { background: white; }
+    #viewport { position: static; display: block; }
+    #stage { transform: none !important; width: auto; height: auto; }
+    section.slide { display: flex !important; position: relative; width: 1280px; height: 720px; page-break-after: always;
+      box-shadow: none; border-radius: 0; }
+    #progress, #help, #nav { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+<section class="slide title-slide">
+  <div class="kicker">Tutorial</div>
+  <h1>lcc<br><span class="muted" style="font-size:48px">local code cli</span></h1>
+  <p style="font-size:26px;max-width:900px">Eine Coding-CLI, die nur mit deinem lokalen Ollama-Server
+  arbeitet – Schritt für Schritt, ein Fall pro Folie.</p>
+  <p style="margin-top:24px"><span class="badge">qwen3.5:9b</span><span class="badge">bge-m3</span>
+  <span class="badge">kein Cloud-Modell</span><span class="badge">keine Telemetrie</span></p>
+  <p class="muted small" style="margin-top:40px">Blättern mit den Buttons unten oder ← / → · F für Vollbild</p>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Überblick</div>
+  <h2>Was lcc kann</h2>
+  <div class="grid3"><div class="card"><h3>Fragen</h3><p><code>lcc ask</code> – Antworten ohne Werkzeuge, auch zu Dateien per Pipe.</p></div><div class="card"><h3>Code</h3><p><code>lcc run</code> – liest, sucht, ändert Dateien. Mit Diff &amp; Rückfrage.</p></div><div class="card"><h3>Interaktiv</h3><p><code>lcc</code> – REPL mit Verlauf und Slash-Befehlen.</p></div><div class="card"><h3>RAG</h3><p>Eigene Doku durchsuchen und mit Quellen <code>[n]</code> zitieren.</p></div><div class="card"><h3>Skills</h3><p>Kleine Anleitungen, die lcc nur bei Bedarf lädt.</p></div><div class="card"><h3>Kleine Modelle</h3><p>Plan → Schritte → Prüfen → Reparieren statt langer Prompts.</p></div></div>
+  <div class="tip"><b>So ist das Tutorial aufgebaut:</b> je Lektion eine Einstiegsfolie, dann ein Fall pro
+  Folie – mit Ziel, Befehl, Ergebnis und dem Wichtigsten zum Merken.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Agenda</div>
+  <h2>Elf Lektionen, ein Übungsprojekt</h2>
+  <ol class="agenda"><li><span class="no">0</span><span>Vorbereitung</span><span class="count">3 Fälle</span></li><li><span class="no">1</span><span>Fragen stellen</span><span class="count">3 Fälle</span></li><li><span class="no">2</span><span>Code verstehen</span><span class="count">2 Fälle</span></li><li><span class="no">3</span><span>Code ändern – und zurücknehmen</span><span class="count">4 Fälle</span></li><li><span class="no">4</span><span>Kleinmodell-Modus</span><span class="count">4 Fälle</span></li><li><span class="no">5</span><span>Interaktiv arbeiten</span><span class="count">4 Fälle</span></li><li><span class="no">6</span><span>Eigene Doku durchsuchen (RAG)</span><span class="count">5 Fälle</span></li><li><span class="no">7</span><span>Skills</span><span class="count">7 Fälle</span></li><li><span class="no">8</span><span>lcc anpassen</span><span class="count">3 Fälle</span></li><li><span class="no">9</span><span>lcc in Skripten</span><span class="count">2 Fälle</span></li><li><span class="no">10</span><span>Wenn etwas hakt</span><span class="count">Spickzettel</span></li></ol>
+</section>
+
+<section class="slide intro-slide">
+  <div class="lesson-no">0</div>
+  <div class="kicker">Lektion 0</div>
+  <h1 style="font-size:60px">Vorbereitung</h1>
+  <p style="font-size:26px;max-width:960px">Einmal einrichten, dann kann es losgehen.</p>
+  <h3 style="margin-top:18px">Das lernst du</h3>
+  <ol class="learn"><li>lcc aufrufen und den Server prüfen</li><li>Übungsprojekt anlegen</li><li>prüfen, wo lcc arbeitet</li></ol>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 0 · Vorbereitung
+    <span class="step">Fall 1 / 3</span></div>
+  <h2>lcc starten und prüfen</h2>
+  <p class="goal"><b>Ziel:</b> lcc ist aufrufbar und der Ollama-Server antwortet.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">source /work/.venv/bin/activate</span>
+<span class="cm"># oder einmalig: pipx install -e /work</span>
+<span class="cmd">lcc doctor</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre><span class="ok">✓ Server: … erreichbar, 14 Modelle</span>
+<span class="ok">✓ Modell qwen3.5:9b (code, chat): 9.7B</span>
+<span class="ok">✓ Modell bge-m3 (embed): 566.70M</span>
+<span class="ok">✓ Tool-Calling: native tool_calls funktionieren</span>
+<span class="ok">✓ Embedding (bge-m3): Dimension 1024</span></pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Alle Zeilen brauchen ein ✓. In der Tabelle steht bei qwen3.5:9b „Kleinmodell-Modus: ja“ – wichtig für Lektion 4.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 0 · Vorbereitung
+    <span class="step">Fall 2 / 3</span></div>
+  <h2>Übungsprojekt anlegen</h2>
+  <p class="goal"><b>Ziel:</b> Ein eigenes Git-Projekt mit Code, Doku und Skills zum Üben.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">/work/examples/skill-uebungen/einrichten.sh ~/lcc-tutorial</span>
+<span class="cmd">cd ~/lcc-tutorial</span>
+<span class="cmd">cp -r /work/examples/rag/docs docs</span>
+<span class="cmd">git add docs &amp;&amp; git commit -m &quot;Doku dazu&quot;</span>
+<span class="cmd">ls</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>abap  bestellung.py  CHANGELOG.md  docs  lager.py
+main.py  README.md  tests  traceback.txt  UEBUNGEN.md  utils.py</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Darin: Python-Code mit eingebautem Fehler, ein CHANGELOG, eine ABAP-Klasse, die Doku „Kranich“ und sechs Skills unter .lcc/skills/.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 0 · Vorbereitung
+    <span class="step">Fall 3 / 3</span></div>
+  <h2>Prüfen, wo lcc arbeitet</h2>
+  <p class="goal"><b>Ziel:</b> Sicherstellen, dass lcc nur im Übungsprojekt liest und schreibt.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc config show | grep -A1 &#x27;^\[workspace\]&#x27;</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>[workspace]
+root = &quot;/home/dev/lcc-tutorial&quot;  # Default</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> lcc arbeitet im Git-Root des Ordners, in dem du es startest. Mit git diff siehst du jede Änderung.</div>
+</section>
+
+<section class="slide intro-slide">
+  <div class="lesson-no">1</div>
+  <div class="kicker">Lektion 1</div>
+  <h1 style="font-size:60px">Fragen stellen</h1>
+  <p style="font-size:26px;max-width:960px">lcc ask beantwortet Fragen – ohne Werkzeuge, ohne etwas zu ändern.</p>
+  <h3 style="margin-top:18px">Das lernst du</h3>
+  <ol class="learn"><li>eine einfache Frage stellen</li><li>eine Datei erklären lassen</li><li>eine Fehlermeldung erklären lassen</li></ol>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 1 · Fragen stellen
+    <span class="step">Fall 1 / 3</span></div>
+  <h2>Eine Frage stellen</h2>
+  <p class="goal"><b>Ziel:</b> Eine schnelle Antwort, ganz ohne Projekt-Kontext.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc ask &quot;Unterschied zwischen Liste und Tupel in Python? Kurz.&quot;</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre><span class="info">⠹ denkt nach … 3s</span>
+Eine Liste ist veränderbar, ein Tupel nicht. …</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> ask nutzt keine Werkzeuge und ändert nie etwas. Der Spinner zeigt, dass das Modell arbeitet.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 1 · Fragen stellen
+    <span class="step">Fall 2 / 3</span></div>
+  <h2>Eine Datei erklären lassen</h2>
+  <p class="goal"><b>Ziel:</b> Eine Datei als Kontext mitgeben – per Pipe.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">cat bestellung.py | lcc ask &quot;Erkläre diese Datei in drei Sätzen.&quot;</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>Die Datei berechnet Versandkosten …
+lies_formular übernimmt die Felder …
+bestellung_bearbeiten verbindet beides …</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Alles, was über stdin kommt, hängt lcc an die Frage an.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 1 · Fragen stellen
+    <span class="step">Fall 3 / 3</span></div>
+  <h2>Eine Fehlermeldung erklären lassen</h2>
+  <p class="goal"><b>Ziel:</b> Die Ausgabe eines Programms direkt weitergeben.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">python main.py 2&gt;&amp;1 | lcc ask &quot;Was bedeutet dieser Fehler?&quot;</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>Der TypeError entsteht, weil gewicht_kg ein String ist
+(&quot;2.5&quot;) und mit einer Zahl multipliziert wird. …</pre></div>
+  </div>
+  <div class="tip"><b>Probier auch:</b> 2&gt;&amp;1 schickt auch die Fehlerausgabe in die Pipe. Beheben lassen wir den Fehler in Lektion 4.</div>
+</section>
+
+<section class="slide intro-slide">
+  <div class="lesson-no">2</div>
+  <div class="kicker">Lektion 2</div>
+  <h1 style="font-size:60px">Code verstehen</h1>
+  <p style="font-size:26px;max-width:960px">lcc run liest und durchsucht das Projekt selbst.</p>
+  <h3 style="margin-top:18px">Das lernst du</h3>
+  <ol class="learn"><li>eine Datei erklären lassen, die lcc selbst liest</li><li>das Projekt durchsuchen lassen</li></ol>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 2 · Code verstehen
+    <span class="step">Fall 1 / 2</span></div>
+  <h2>lcc liest selbst</h2>
+  <p class="goal"><b>Ziel:</b> lcc öffnet die Datei, statt dass du sie mitgibst.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc run --no-small &quot;Welche Funktionen gibt es in lager.py?&quot;</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre><span class="info">→ read_file(path=&#x27;lager.py&#x27;)</span>
+<span class="muted">  ↳ 25 Zeilen</span>
+In lager.py gibt es drei Funktionen:
+- nachbestellen …
+- bestand_buchen …
+- lagerwert …</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> → zeigt einen Tool-Aufruf, ↳ die Größe des Ergebnisses. --no-small zeigt den einfachen Ablauf (Lektion 4 erklärt den Rest).</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 2 · Code verstehen
+    <span class="step">Fall 2 / 2</span></div>
+  <h2>Das Projekt durchsuchen</h2>
+  <p class="goal"><b>Ziel:</b> Finden, wo etwas verwendet wird.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc run --no-small &quot;Wo wird versandkosten aufgerufen?&quot;</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre><span class="info">→ search_code(pattern=&#x27;versandkosten&#x27;)</span>
+<span class="muted">  ↳ 3 Zeilen</span>
+versandkosten wird in bestellung.py, Zeile 24, aufgerufen …</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Lese-Werkzeuge: list_dir, read_file, search_code. Keines davon ändert etwas.</div>
+</section>
+
+<section class="slide intro-slide">
+  <div class="lesson-no">3</div>
+  <div class="kicker">Lektion 3</div>
+  <h1 style="font-size:60px">Code ändern – und zurücknehmen</h1>
+  <p style="font-size:26px;max-width:960px">lcc ändert Dateien nur mit deinem Okay. Jede Änderung lässt sich zurücknehmen.</p>
+  <h3 style="margin-top:18px">Das lernst du</h3>
+  <ol class="learn"><li>eine Funktion hinzufügen lassen</li><li>die Änderung prüfen und zurücknehmen</li><li>Shell-Befehle und die Allowlist</li><li>ohne Rückfragen arbeiten</li></ol>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 3 · Code ändern – und zurücknehmen
+    <span class="step">Fall 1 / 4</span></div>
+  <h2>Eine Funktion hinzufügen</h2>
+  <p class="goal"><b>Ziel:</b> lcc schlägt eine Änderung vor – du entscheidest.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc run --no-small &quot;Füge in utils.py eine Funktion ist_gerade(n) hinzu.&quot;</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>Änderung an utils.py:
+--- a/utils.py
++++ b/utils.py
+<span class="ok">+def ist_gerade(n: int) -&gt; bool:</span>
+<span class="ok">+    return n % 2 == 0</span>
+<span class="warn">[j]a / [n]ein / [i]mmer für diese Session:</span></pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> j erlaubt, n lehnt ab (das Modell erfährt es), i erlaubt alle weiteren Änderungen in diesem Lauf.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 3 · Code ändern – und zurücknehmen
+    <span class="step">Fall 2 / 4</span></div>
+  <h2>Prüfen und zurücknehmen</h2>
+  <p class="goal"><b>Ziel:</b> Sehen, was geändert wurde – und es rückgängig machen.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">git diff utils.py</span>
+<span class="cmd">lcc undo</span>
+<span class="cmd">git diff utils.py</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre><span class="ok">+def ist_gerade(n: int) -&gt; bool:</span>
+<span class="ok">+    return n % 2 == 0</span>
+Zurückgenommen: utils.py wiederhergestellt.
+(keine Änderungen mehr)</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> lcc undo geht mehrfach hintereinander und löscht auch Dateien, die lcc neu angelegt hat. Backups liegen in .lcc/undo/.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 3 · Code ändern – und zurücknehmen
+    <span class="step">Fall 3 / 4</span></div>
+  <h2>Shell-Befehle und Allowlist</h2>
+  <p class="goal"><b>Ziel:</b> Verstehen, wann lcc vor einem Befehl fragt.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc run --no-small &quot;Führe main.py aus und sag mir das Ergebnis.&quot;</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre><span class="info">→ run_shell(command=&#x27;python main.py&#x27;)</span>
+Shell-Befehl ausführen: python main.py
+<span class="warn">[j]a / [n]ein / [i]mmer für diese Session:</span></pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Ohne Rückfrage erlaubt: ls, cat, rg, grep, git status, git diff, pytest, python -m pytest, python -m py_compile. Alles andere wird bestätigt.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 3 · Code ändern – und zurücknehmen
+    <span class="step">Fall 4 / 4</span></div>
+  <h2>Ohne Rückfragen arbeiten</h2>
+  <p class="goal"><b>Ziel:</b> Änderungen direkt schreiben lassen – du prüfst danach mit git diff.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc run --yes &quot;Füge in utils.py eine Funktion ist_gerade(n) hinzu.&quot;</span>
+<span class="cmd">git diff</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre><span class="info">→ edit_file(path=&#x27;utils.py&#x27;, …)</span>
+<span class="muted">  ↳ 1 Zeilen</span>
+Funktion ist_gerade hinzugefügt.</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> --yes gilt nur für Dateien. Shell-Befehle außerhalb der Allowlist bleiben bestätigungspflichtig – ohne Terminal werden sie abgelehnt.</div>
+</section>
+
+<section class="slide intro-slide">
+  <div class="lesson-no">4</div>
+  <div class="kicker">Lektion 4</div>
+  <h1 style="font-size:60px">Kleinmodell-Modus</h1>
+  <p style="font-size:26px;max-width:960px">Kleine Modelle scheitern an langen Aufgaben. lcc hilft mit Struktur: Plan → Schritte → Prüfen → Reparieren.</p>
+  <h3 style="margin-top:18px">Das lernst du</h3>
+  <ol class="learn"><li>einen Plan ansehen und bestätigen</li><li>Schritte und Prüfungen verfolgen</li><li>einen Plan bearbeiten</li><li>verstehen, was bei roten Prüfungen passiert</li></ol>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 4 · Kleinmodell-Modus
+    <span class="step">Fall 1 / 4</span></div>
+  <h2>Den Plan ansehen</h2>
+  <p class="goal"><b>Ziel:</b> Den Fehler aus Lektion 1 beheben – lcc plant zuerst.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">cat traceback.txt</span>
+<span class="cmd">lcc run &quot;Beim Start von main.py kommt der Fehler aus traceback.txt. Finde die Ursache in bestellung.py und behebe sie.&quot;</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre><span class="info">⚙ Skill: fehler-analysieren</span>
+<span class="info">Kleinmodell-Modus (qwen3.5:9b, 9.7B)</span>
+Plan:
+1. [explore] bestellung.py lesen (bestellung.py)
+2. [edit] Gewicht in lies_formular in float umwandeln
+<span class="warn">[Enter] ausführen / [e] bearbeiten / [n] abbrechen:</span></pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Automatisch aktiv bei Modellen bis 14 Mrd. Parameter. Phasen: explore = lesen, edit = ändern, verify = prüfen. Der genaue Plan variiert.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 4 · Kleinmodell-Modus
+    <span class="step">Fall 2 / 4</span></div>
+  <h2>Schritte und Prüfungen</h2>
+  <p class="goal"><b>Ziel:</b> Mit Enter den Plan ausführen und zusehen.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="warn">[Enter]</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre><span class="info">▶ Schritt 1/2 [explore]: bestellung.py lesen</span>
+<span class="info">→ read_file(path=&#x27;bestellung.py&#x27;)</span>
+<span class="info">▶ Schritt 2/2 [edit]: Gewicht in float umwandeln</span>
+<span class="info">→ edit_file(path=&#x27;bestellung.py&#x27;, …)</span>
+<span class="ok">✓ Check bestanden: python -m py_compile bestellung.py</span>
+<span class="ok">✓ Check bestanden: python -m pytest -q</span></pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Jeder Schritt bekommt nur die Werkzeuge seiner Phase und eine kurze Zusammenfassung der vorigen Schritte. Danach prüft lcc selbst.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 4 · Kleinmodell-Modus
+    <span class="step">Fall 3 / 4</span></div>
+  <h2>Den Plan bearbeiten</h2>
+  <p class="goal"><b>Ziel:</b> Den Plan selbst vorgeben, wenn er dir nicht gefällt.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="warn">[Enter] ausführen / [e] bearbeiten / [n] abbrechen: e</span>
+<span class="warn">&gt; explore: bestellung.py und main.py lesen</span>
+<span class="warn">&gt; edit: Gewicht in lies_formular mit float() umwandeln</span>
+&gt;</pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>Plan:
+1. [explore] bestellung.py und main.py lesen
+2. [edit] Gewicht in lies_formular mit float() umwandeln
+<span class="warn">[Enter] ausführen / [e] bearbeiten / [n] abbrechen:</span></pre></div>
+  </div>
+  <div class="tip"><b>Probier auch:</b> Eine Zeile pro Schritt im Format „phase: Ziel“, leere Zeile beendet. n bricht ab, ohne etwas zu ändern.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 4 · Kleinmodell-Modus
+    <span class="step">Fall 4 / 4</span></div>
+  <h2>Wenn eine Prüfung rot ist</h2>
+  <p class="goal"><b>Ziel:</b> Verstehen, wie lcc repariert – und wann es ehrlich aufgibt.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cm"># lcc prüft nach den Änderungen automatisch:</span>
+<span class="cm"># py_compile für geänderte Python-Dateien,</span>
+<span class="cm"># pytest, wenn es tests/ gibt</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre><span class="bad">✗ Check fehlgeschlagen: python -m pytest -q</span>
+<span class="info">↻ Repair-Versuch 1: Fehler aus den Checks zurück an das Modell</span>
+<span class="info">▶ Schritt 3/3 [edit]: Behebe diesen Fehler: …</span>
+<span class="ok">✓ Check bestanden: python -m pytest -q</span></pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Bleibt es rot: Abbruch mit Exit 1, letzter Fehlermeldung und Hinweis auf lcc undo – nie „Erfolg“. Prüfe danach: python main.py → Petra Lindner: 7.03 EUR</div>
+</section>
+
+<section class="slide intro-slide">
+  <div class="lesson-no">5</div>
+  <div class="kicker">Lektion 5</div>
+  <h1 style="font-size:60px">Interaktiv arbeiten</h1>
+  <p style="font-size:26px;max-width:960px">In der REPL führst du ein Gespräch mit Verlauf – mit Slash-Befehlen für alles Weitere.</p>
+  <h3 style="margin-top:18px">Das lernst du</h3>
+  <ol class="learn"><li>die REPL starten und mit Verlauf fragen</li><li>eine Datei anhängen</li><li>Änderungen ansehen und zurücknehmen</li><li>Sessions speichern und laden</li></ol>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 5 · Interaktiv arbeiten
+    <span class="step">Fall 1 / 4</span></div>
+  <h2>Die REPL starten</h2>
+  <p class="goal"><b>Ziel:</b> Fragen stellen, die aufeinander aufbauen.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc</span>
+<span class="repl">›</span> <span class="cmd-plain">Was macht format_euro in utils.py?</span>
+<span class="repl">›</span> <span class="cmd-plain">Und mit negativen Zahlen?</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>lcc – Modell qwen3.5:9b … /help zeigt die Befehle
+<span class="info">→ read_file(path=&#x27;utils.py&#x27;)</span>
+format_euro formatiert … 1.234,50 €
+… bei -5 ergibt sich -5,00 €</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Die zweite Frage versteht lcc, weil der Verlauf erhalten bleibt. Esc+Enter = neue Zeile, ↑/↓ = frühere Eingaben.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 5 · Interaktiv arbeiten
+    <span class="step">Fall 2 / 4</span></div>
+  <h2>Eine Datei anhängen</h2>
+  <p class="goal"><b>Ziel:</b> lcc eine Datei direkt in die nächste Nachricht legen.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="repl">›</span> <span class="cmd-plain">/add lager.py</span>
+<span class="repl">›</span> <span class="cmd-plain">Was passiert, wenn der Bestand negativ würde?</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>Angehängt an die nächste Nachricht: lager.py (Zeilen 1-… von …)
+bestand_buchen wirft dann einen ValueError …</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Tab vervollständigt Pfade nach /add. Gut, wenn das Modell sonst rät.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 5 · Interaktiv arbeiten
+    <span class="step">Fall 3 / 4</span></div>
+  <h2>Änderungen ansehen und zurücknehmen</h2>
+  <p class="goal"><b>Ziel:</b> Alles, was lcc in dieser Session geändert hat, im Blick behalten.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="repl">›</span> <span class="cmd-plain">Ergänze in utils.py eine Funktion ist_gerade(n)</span>
+<span class="repl">›</span> <span class="cmd-plain">/diff</span>
+<span class="repl">›</span> <span class="cmd-plain">/undo</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre><span class="warn">[j]a / [n]ein / [i]mmer für diese Session: j</span>
+<span class="ok">+def ist_gerade(n: int) -&gt; bool: …</span>
+Zurückgenommen: utils.py wiederhergestellt.</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Auch in der REPL gilt der Kleinmodell-Modus: bei Änderungen erscheint der Plan.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 5 · Interaktiv arbeiten
+    <span class="step">Fall 4 / 4</span></div>
+  <h2>Sessions speichern und laden</h2>
+  <p class="goal"><b>Ziel:</b> Ein Gespräch später fortsetzen.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="repl">›</span> <span class="cmd-plain">/save tutorial</span>
+<span class="repl">›</span> <span class="cmd-plain">/clear</span>
+<span class="repl">›</span> <span class="cmd-plain">/load</span>
+<span class="repl">›</span> <span class="cmd-plain">/load tutorial</span>
+<span class="repl">›</span> <span class="cmd-plain">/exit</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>Session gespeichert: ~/.local/state/lcc/sessions/tutorial.jsonl
+Verlauf geleert, neue Session.
+  tutorial  2026-10-13 10:15  6 Nachrichten
+Session tutorial geladen (6 Nachrichten).</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Strg-C bricht nur die laufende Antwort ab, zweimal Strg-C (oder /exit) beendet. /help zeigt alle Befehle.</div>
+</section>
+
+<section class="slide intro-slide">
+  <div class="lesson-no">6</div>
+  <div class="kicker">Lektion 6</div>
+  <h1 style="font-size:60px">Eigene Doku durchsuchen (RAG)</h1>
+  <p style="font-size:26px;max-width:960px">lcc beantwortet Fragen aus deinen Dokumenten – mit Quellenangabe.</p>
+  <h3 style="margin-top:18px">Das lernst du</h3>
+  <ol class="learn"><li>den Index bauen</li><li>die Doku durchsuchen</li><li>Fragen mit Quellen beantworten</li><li>englische Doku und Code finden</li><li>RAG im Agenten und in der REPL</li></ol>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 6 · Eigene Doku durchsuchen (RAG)
+    <span class="step">Fall 1 / 5</span></div>
+  <h2>Den Index bauen</h2>
+  <p class="goal"><b>Ziel:</b> lcc liest die Dokumente unter docs/ ein.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc rag index</span>
+<span class="cmd">lcc rag stats</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>Index aktualisiert: 9 neu, 0 geändert, 0 unverändert, 0 entfernt – 9 Dateien, 26 Chunks
+Dateien: 9
+Chunks: 26
+Embedding-Modell: bge-m3
+Dimension: 1024</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Standard-Quellen: ./docs und ~/rag-docs. Nach Änderungen einfach erneut indexieren – nur Geändertes wird neu berechnet.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 6 · Eigene Doku durchsuchen (RAG)
+    <span class="step">Fall 2 / 5</span></div>
+  <h2>Die Doku durchsuchen</h2>
+  <p class="goal"><b>Ziel:</b> Sehen, welche Stellen zu einer Frage passen.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc rag search &quot;Wer gibt Deployments frei?&quot;</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>[1] docs/handbuch/betrieb.md:3-9 (score 0.54)
+## Deployment
+Neue Versionen von Kranich werden nur mittwochs …
+[2] …</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Jeder Treffer mit Datei, Zeilenbereich und Score. Gut zum Prüfen, bevor du fragst.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 6 · Eigene Doku durchsuchen (RAG)
+    <span class="step">Fall 3 / 5</span></div>
+  <h2>Fragen mit Quellen</h2>
+  <p class="goal"><b>Ziel:</b> Eine Antwort, die nur in deiner Doku steht.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc ask &quot;Wann darf Kranich ausgerollt werden und wer gibt frei?&quot;</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre><span class="info">RAG: [1] docs/handbuch/betrieb.md:3-9, [2] …</span>
+Kranich wird nur mittwochs zwischen 6:00 und 8:00 Uhr
+ausgerollt; die Freigabe erteilt Tobias Reinhardt,
+in Vertretung Aylin Demir [1].</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> [n] verweist auf die Quellen in der ersten Zeile. Kein Modell kennt diese Fakten – sie kommen aus docs/.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 6 · Eigene Doku durchsuchen (RAG)
+    <span class="step">Fall 4 / 5</span></div>
+  <h2>Englische Doku und Code</h2>
+  <p class="goal"><b>Ziel:</b> Testen, was die Suche alles findet.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc ask &quot;Wie lange ist ein API-Schlüssel gültig?&quot;</span>
+<span class="cmd">lcc ask &quot;Was kostet eine Expresssendung mit 2 kg?&quot;</span>
+<span class="cmd">lcc ask &quot;Wie heißt der Hund von Tobias?&quot;</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>… 365 Tage [1]        # aus docs/english/api.md
+… 4,90 + 2 × 0,85 + 9,90 = 16,50 € [1]   # aus tarife.py
+… dazu steht nichts in der Dokumentation.</pre></div>
+  </div>
+  <div class="tip"><b>Probier auch:</b> Deutsche Fragen finden auch englische Texte. Die letzte Frage ist die Gegenprobe – das Modell soll nichts erfinden.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 6 · Eigene Doku durchsuchen (RAG)
+    <span class="step">Fall 5 / 5</span></div>
+  <h2>RAG im Agenten und in der REPL</h2>
+  <p class="goal"><b>Ziel:</b> lcc sucht selbst in der Doku, wenn es nötig ist.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc run --no-small &quot;Wie wechselt die Rufbereitschaft?&quot;</span>
+<span class="cmd">lcc</span>
+<span class="repl">›</span> <span class="cmd-plain">/rag Backups</span>
+<span class="repl">›</span> <span class="cmd-plain">/rag off</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre><span class="info">→ rag_search(query=&#x27;Rufbereitschaft Wechsel&#x27;)</span>
+Jeden Freitag um 12:00 Uhr … [1]
+[1] docs/handbuch/betrieb.md:21-26 …
+RAG ist jetzt off.</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> --no-rag schaltet RAG für einen Aufruf ab. Eigene Quellen: [rag] sources in der Config (Lektion 8).</div>
+</section>
+
+<section class="slide intro-slide">
+  <div class="lesson-no">7</div>
+  <div class="kicker">Lektion 7</div>
+  <h1 style="font-size:60px">Skills</h1>
+  <p style="font-size:26px;max-width:960px">Ein Skill ist eine kurze Anleitung für genau eine Art von Aufgabe. lcc lädt ihn nur, wenn der Auftrag passt.</p>
+  <h3 style="margin-top:18px">Das lernst du</h3>
+  <ol class="learn"><li>vorhandene Skills ansehen</li><li>verstehen, welcher Skill geladen wird</li><li>einen Skill arbeiten lassen</li><li>einen nur lesenden Skill nutzen</li><li>einen eigenen Skill schreiben (3 Fälle)</li></ol>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 7 · Skills
+    <span class="step">Fall 1 / 7</span></div>
+  <h2>Vorhandene Skills ansehen</h2>
+  <p class="goal"><b>Ziel:</b> Wissen, welche Skills im Projekt bereitstehen.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc skills</span>
+<span class="cmd">lcc skills show changelog-eintrag</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>abap-unit-test        Projekt  Legt eine ABAP-Unit-Testklasse an …
+changelog-eintrag     Projekt  Ergänzt CHANGELOG.md …
+commit-nachricht      Projekt  Formuliert eine Commit-Nachricht …
+…</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Das Modell sieht zunächst nur Name und Beschreibung – den Inhalt erst, wenn er passt. Das hält den Kontext klein.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 7 · Skills
+    <span class="step">Fall 2 / 7</span></div>
+  <h2>Welcher Skill wird geladen?</h2>
+  <p class="goal"><b>Ziel:</b> Vor dem Auftrag prüfen, was lcc wählen würde.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc skills match &quot;trag ins Changelog ein: Versand funktioniert jetzt&quot;</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>changelog-eintrag  1.00  Trigger &#x27;changelog&#x27;  wird automatisch geladen
+commit-nachricht   0.49  Ähnlichkeit 0.49     im Systemprompt gelistet</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Trigger (Stichwort im Auftrag) → Score 1.0. Sonst zählt die Ähnlichkeit: ab 0.55 wird geladen, darunter nur gelistet.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 7 · Skills
+    <span class="step">Fall 3 / 7</span></div>
+  <h2>Einen Skill arbeiten lassen</h2>
+  <p class="goal"><b>Ziel:</b> Einen Eintrag ins CHANGELOG schreiben lassen.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc run &quot;trag ins Changelog ein: Versandkosten funktionieren jetzt mit Text-Gewicht&quot;</span>
+<span class="cmd">git diff CHANGELOG.md</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre><span class="info">⚙ Skill: changelog-eintrag</span>
+Plan: …
+## [Unreleased]
+<span class="ok">+### Fixed</span>
+<span class="ok">+- Behebt die Versandkosten bei Gewicht als Text.</span></pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> ⚙ zeigt, welcher Skill geladen wurde. Alte Einträge bleiben unverändert – so steht es im Skill unter „Nicht tun“.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 7 · Skills
+    <span class="step">Fall 4 / 7</span></div>
+  <h2>Ein Skill, der nichts ändern darf</h2>
+  <p class="goal"><b>Ziel:</b> Eine Commit-Nachricht vorschlagen lassen.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">git status</span>
+<span class="cmd">lcc run &quot;Schlag mir eine Commit-Nachricht für meine Änderungen vor&quot;</span>
+<span class="cmd">git status</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre><span class="info">⚙ Skill: commit-nachricht</span>
+<span class="info">→ run_shell(command=&#x27;git status&#x27;)</span>
+<span class="info">→ run_shell(command=&#x27;git diff …&#x27;)</span>
+```
+Ergänze kuerzen() und erhöhe den Mindestbestand
+```</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Der Skill erlaubt nur run_shell und read_file – lcc schränkt die Werkzeuge ein. git status sieht danach genauso aus wie vorher.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 7 · Skills
+    <span class="step">Fall 5 / 7</span></div>
+  <h2>Eigener Skill (1/3): Gerüst</h2>
+  <p class="goal"><b>Ziel:</b> Einen Skill anlegen, der TODO-Kommentare sammelt.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">printf &#x27;\n# TODO: Mindestbestand aus der Config lesen\n&#x27; &gt;&gt; lager.py</span>
+<span class="cmd">printf &#x27;\n# TODO: Expresszuschlag ergänzen\n&#x27; &gt;&gt; bestellung.py</span>
+<span class="cmd">lcc skills new todo-sammeln</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>Skill angelegt: ~/lcc-tutorial/.lcc/skills/todo-sammeln/SKILL.md</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Das Gerüst enthält schon alle Abschnitte: Ziel, Vorgehen, Regeln, Nicht tun, Ausgabe, Beispiel.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 7 · Skills
+    <span class="step">Fall 6 / 7</span></div>
+  <h2>Eigener Skill (2/3): SKILL.md</h2>
+  <p class="goal"><b>Ziel:</b> Beschreibung, Trigger, Werkzeuge und Schritte festlegen.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre>---
+name: todo-sammeln
+description: Sammelt alle TODO-Kommentare in TODO.md.
+  Nutzen bei &quot;TODOs sammeln&quot;, &quot;offene Punkte&quot;.
+triggers: todo, todos, offene punkte
+tools: search_code, read_file, write_file
+---
+# TODOs sammeln
+## Vorgehen
+1. Suche mit `search_code` nach `TODO`.
+2. Schreibe `TODO.md` mit `write_file`.
+## Nicht tun
+- Code ändern.</pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>description  → was + wann; sieht das Modell immer
+triggers     → sichere Stichwörter
+               (Wortgrenzen: todo ≠ todos)
+tools        → nur diese, solange aktiv
+Vorgehen     → nummerierte Schritte mit Tool-Namen
+Nicht tun    → ausdrücklich nennen</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Kurz halten: ideal 1500–3000 Zeichen. Ein kurzes Beispiel am Ende hilft dem Modell mehr als jede Beschreibung.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 7 · Skills
+    <span class="step">Fall 7 / 7</span></div>
+  <h2>Eigener Skill (3/3): prüfen und nutzen</h2>
+  <p class="goal"><b>Ziel:</b> Den Skill testen – und arbeiten lassen.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc skills check</span>
+<span class="cmd">lcc skills match &quot;Sammle alle TODOs im Projekt&quot;</span>
+<span class="cmd">lcc run &quot;Sammle alle TODOs im Projekt&quot;</span>
+<span class="cmd">cat TODO.md</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>0 Fehler, 0 Warnungen in 7 Skills
+todo-sammeln  1.00  Trigger &#x27;todos&#x27;
+<span class="info">⚙ Skill: todo-sammeln</span>
+- [ ] bestellung.py:26 – Expresszuschlag ergänzen
+- [ ] lager.py:25 – Mindestbestand aus der Config lesen</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Für alle Projekte: lcc skills new &lt;name&gt; --user → ~/.config/lcc/skills/. Projekt-Skills haben Vorrang.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 7 · Spickzettel</div>
+  <h2>Faustregeln für gute Skills</h2>
+  <div class="grid2">
+    <ul>
+      <li><b>Ein Skill = eine Aufgabe.</b> Lieber drei kleine als einen großen.</li>
+      <li><b>Kurz:</b> ideal 1500–3000 Zeichen.</li>
+      <li><b>Nummerierte Schritte</b> mit klaren Verben und Tool-Namen.</li>
+      <li><b>Ein kurzes Beispiel</b> schlägt jede Beschreibung.</li>
+    </ul>
+    <ul>
+      <li><b>„Nicht tun“</b> ausdrücklich nennen.</li>
+      <li><b>Trigger mit Bedacht</b> – zu allgemeine laden ständig.</li>
+      <li><b><code>tools</code> einschränken</b>, wenn nichts geändert werden soll.</li>
+      <li><b><code>checks</code></b> nur mit Befehlen aus der Allowlist.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="slide intro-slide">
+  <div class="lesson-no">8</div>
+  <div class="kicker">Lektion 8</div>
+  <h1 style="font-size:60px">lcc anpassen</h1>
+  <p style="font-size:26px;max-width:960px">Einstellungen fürs Projekt oder für dich – ohne Code zu ändern.</p>
+  <h3 style="margin-top:18px">Das lernst du</h3>
+  <ol class="learn"><li>sehen, welche Einstellung woher kommt</li><li>die Allowlist erweitern</li><li>Projektregeln für das Modell festlegen</li></ol>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 8 · lcc anpassen
+    <span class="step">Fall 1 / 3</span></div>
+  <h2>Woher kommt eine Einstellung?</h2>
+  <p class="goal"><b>Ziel:</b> Die wirksame Config mit Herkunft jedes Werts sehen.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc config show | less</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>[ollama]
+base_url = &quot;http://192.168.178.79:11434&quot;  # Default
+[models]
+code = &quot;qwen3.5:9b&quot;  # Default
+embed = &quot;bge-m3&quot;  # Default</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Reihenfolge: Defaults → ~/.config/lcc/config.toml → ./.lcc/config.toml → --config → Umgebung → Flags. lcc config init legt die Benutzer-Config an.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 8 · lcc anpassen
+    <span class="step">Fall 2 / 3</span></div>
+  <h2>Die Allowlist erweitern</h2>
+  <p class="goal"><b>Ziel:</b> python main.py ohne Rückfrage erlauben – nur in diesem Projekt.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">cat &gt; .lcc/config.toml &lt;&lt;&#x27;EOF&#x27;</span>
+[agent]
+shell_allowlist = [&quot;ls&quot;, &quot;cat&quot;, &quot;rg&quot;, &quot;grep&quot;,
+  &quot;git status&quot;, &quot;git diff&quot;, &quot;pytest&quot;, &quot;python -m pytest&quot;,
+  &quot;python -m py_compile&quot;, &quot;python main.py&quot;]
+EOF
+<span class="cmd">lcc config show | grep shell_allowlist</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>shell_allowlist = [… &quot;python main.py&quot;]  # …/.lcc/config.toml</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Verglichen wird der Anfang des Befehls: python main.py erlaubt genau diesen Aufruf, nicht python anderes.py.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 8 · lcc anpassen
+    <span class="step">Fall 3 / 3</span></div>
+  <h2>Projektregeln für das Modell</h2>
+  <p class="goal"><b>Ziel:</b> Dem Modell Hausregeln mitgeben, die immer gelten.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">cat &gt; .lcc/AGENT.md &lt;&lt;&#x27;EOF&#x27;</span>
+- Schreibe Kommentare auf Deutsch.
+- Nutze Typannotationen bei neuen Funktionen.
+- Beträge immer in Euro mit zwei Nachkommastellen.
+EOF</pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre><span class="cm"># Ab jetzt hängt lcc diese Regeln an jeden</span>
+<span class="cm"># Systemprompt in diesem Projekt.</span></pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Kurz halten – kleine Modelle lesen jedes Wort. Für Aufgaben-Anleitungen sind Skills besser geeignet.</div>
+</section>
+
+<section class="slide intro-slide">
+  <div class="lesson-no">9</div>
+  <div class="kicker">Lektion 9</div>
+  <h1 style="font-size:60px">lcc in Skripten</h1>
+  <p style="font-size:26px;max-width:960px">Mit --json liefert lcc maschinenlesbare Ereignisse – für Skripte und Pipelines.</p>
+  <h3 style="margin-top:18px">Das lernst du</h3>
+  <ol class="learn"><li>JSON-Ereignisse ausgeben und filtern</li><li>am Exit-Code erkennen, ob es geklappt hat</li></ol>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 9 · lcc in Skripten
+    <span class="step">Fall 1 / 2</span></div>
+  <h2>JSON-Ereignisse</h2>
+  <p class="goal"><b>Ziel:</b> Eine Antwort maschinenlesbar weiterverarbeiten.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc --json ask &quot;Antworte nur mit: ok&quot; | tail -1</span>
+<span class="cmd">lcc --json run --yes &quot;Sammle alle TODOs&quot; \</span>
+    | jq -c &#x27;select(.type==&quot;check&quot;)&#x27;</pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>{&quot;type&quot;: &quot;final&quot;, &quot;content&quot;: &quot;ok&quot;, &quot;model&quot;: &quot;qwen3.5:9b&quot;, …}
+{&quot;type&quot;: &quot;check&quot;, &quot;command&quot;: &quot;python -m pytest -q&quot;, &quot;ok&quot;: true, …}</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Typen: token, tool_call, tool_result, plan, step, check, info, final, error. Ohne Terminal fragt lcc nie – Schreiben nur mit --yes.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 9 · lcc in Skripten
+    <span class="step">Fall 2 / 2</span></div>
+  <h2>Hat es geklappt?</h2>
+  <p class="goal"><b>Ziel:</b> Den Exit-Code im Skript auswerten.</p>
+  <div class="case">
+    <div class="pane"><div class="label">Du tippst</div><pre><span class="cmd">lcc run --yes &quot;…&quot;; echo &quot;exit=$?&quot;</span></pre></div>
+    <div class="pane"><div class="label">Du siehst</div><pre>exit=0     ok
+exit=1     nicht erfolgreich (z. B. Checks rot)
+exit=2     Config-Fehler
+exit=3     Server nicht erreichbar
+exit=4     Modell fehlt
+exit=130   Abbruch mit Strg-C</pre></div>
+  </div>
+  <div class="tip"><b>Merke:</b> Bei exit=1 nach Änderungen: git diff ansehen, ggf. lcc undo.</div>
+</section>
+
+<section class="slide ">
+  <div class="kicker">Lektion 10</div>
+  <h2>Wenn etwas hakt</h2>
+  <table>
+    <tr><th>Problem</th><th>Lösung</th></tr>
+    <tr><td>Server nicht erreichbar (Exit 3)</td><td><code>lcc doctor</code>, URL in <code>lcc config show</code>, <code>--url</code></td></tr>
+    <tr><td>Modell fehlt (Exit 4)</td><td>auf dem Server <code>ollama pull &lt;modell&gt;</code></td></tr>
+    <tr><td>falscher Ordner</td><td><code>lcc config show | grep -A1 workspace</code> – lcc nutzt den Git-Root</td></tr>
+    <tr><td>Modell rät statt zu lesen</td><td>Datei im Auftrag nennen oder <code>/add datei</code></td></tr>
+    <tr><td>Änderung gefällt nicht</td><td><code>lcc undo</code> oder <code>git checkout -- datei</code></td></tr>
+    <tr><td>Befehl abgelehnt</td><td>Allowlist erweitern (Lektion 8) oder im Terminal bestätigen</td></tr>
+    <tr><td>Skill lädt nicht</td><td><code>lcc skills match "…"</code> – Trigger ergänzen</td></tr>
+    <tr><td>RAG findet nichts</td><td><code>lcc rag stats</code>, <code>lcc rag index</code>, nach Modellwechsel <code>--rebuild</code></td></tr>
+    <tr><td>langsam</td><td>für Fragen <code>lcc ask</code> oder <code>--no-small</code></td></tr>
+  </table>
+</section>
+
+<section class="slide title-slide">
+  <div class="kicker">Wie geht es weiter?</div>
+  <h2 style="font-size:52px">Jetzt du.</h2>
+  <ol class="learn" style="max-width:1000px">
+    <li>Übungen: <code>UEBUNGEN.md</code> im Projekt – je eine Aufgabe pro Skill</li>
+    <li>Eigenes Projekt: <code>cd mein-projekt &amp;&amp; lcc doctor &amp;&amp; lcc</code></li>
+    <li>Skills für deine wiederkehrenden Aufgaben schreiben</li>
+    <li>Doku nach <code>./docs</code> oder <code>~/rag-docs</code> legen und indexieren</li>
+    <li>Nachschlagen: <code>README.md</code> · Mitmachen: <code>TUTORIAL.md</code></li>
+  </ol>
+</section>
+</div></div>
+<div id="progress"></div>
+<nav id="nav" aria-label="Folien-Navigation">
+  <button type="button" class="prev" id="prev" title="Vorherige Folie (←)"><span class="arrow">‹</span>Zurück</button>
+  <span class="pos" id="pos">1 / 1</span>
+  <button type="button" class="next" id="next" title="Nächste Folie (→)">Weiter<span class="arrow">›</span></button>
+</nav>
+<div id="help">← → · F Vollbild · P Drucken</div>
+<script>
+(function () {
+  const slides = Array.from(document.querySelectorAll("section.slide"));
+  const stage = document.getElementById("stage");
+  const progress = document.getElementById("progress");
+  let index = 0;
+  slides.forEach((slide, i) => {
+    const bar = document.createElement("footer");
+    bar.className = "bar";
+    bar.innerHTML = "<span>lcc · Tutorial</span><span>" + (i + 1) + "</span>";
+    slide.appendChild(bar);
+  });
+  function fit() {
+    // unten 64 px frei für die Navigationsleiste
+    const scale = Math.min(window.innerWidth / 1280, (window.innerHeight - 64) / 720) * 0.98;
+    stage.style.transform = "scale(" + scale + ")";
+  }
+  const prev = document.getElementById("prev");
+  const next = document.getElementById("next");
+  const pos = document.getElementById("pos");
+  function show(i) {
+    index = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, j) => s.classList.toggle("active", j === index));
+    progress.style.width = ((index + 1) / slides.length * 100) + "%";
+    pos.textContent = (index + 1) + " / " + slides.length;
+    prev.disabled = index === 0;
+    next.disabled = index === slides.length - 1;
+    if (location.hash !== "#" + (index + 1)) history.replaceState(null, "", "#" + (index + 1));
+  }
+  prev.addEventListener("click", () => show(index - 1));
+  next.addEventListener("click", () => show(index + 1));
+  document.addEventListener("keydown", (e) => {
+    if (e.target.closest && e.target.closest("button") && (e.key === " " || e.key === "Enter")) return;
+    if (["ArrowRight", "PageDown", " "].includes(e.key)) { e.preventDefault(); show(index + 1); }
+    else if (["ArrowLeft", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); show(index - 1); }
+    else if (e.key === "Home") show(0);
+    else if (e.key === "End") show(slides.length - 1);
+    else if (e.key === "f" || e.key === "F") {
+      if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen();
+    } else if (e.key === "p" || e.key === "P") window.print();
+  });
+  window.addEventListener("resize", fit);
+  fit();
+  const start = parseInt(location.hash.slice(1), 10);
+  show(Number.isFinite(start) ? start - 1 : 0);
+})();
+</script>
+</body>
+</html>

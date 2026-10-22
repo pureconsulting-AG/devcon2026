@@ -1,0 +1,12 @@
+$ python main.py
+Traceback (most recent call last):
+  File "main.py", line 4, in <module>
+    print(bestellung_bearbeiten({"kunde": "Petra Lindner", "gewicht": "2.5"}))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "bestellung.py", line 24, in bestellung_bearbeiten
+    kosten = versandkosten(bestellung["gewicht_kg"])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "bestellung.py", line 9, in versandkosten
+    return round(GRUNDPREIS_EUR + PREIS_PRO_KG_EUR * gewicht_kg, 2)
+                                  ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~
+TypeError: can't multiply sequence by non-int of type 'float'

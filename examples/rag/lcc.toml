@@ -1,0 +1,7 @@
+# Config für die RAG-Beispiele direkt im lcc-Repo:
+#   lcc --config examples/rag/lcc.toml rag index
+# Pfade gelten relativ zu dieser Datei.
+
+[rag]
+sources = ["docs"]
+index_path = ".lcc/index.db"

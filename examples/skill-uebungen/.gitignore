@@ -1,0 +1,4 @@
+__pycache__/
+.pytest_cache/
+.lcc/index.db
+.lcc/undo/
